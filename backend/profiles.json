@@ -1,0 +1,6 @@
+{
+  "Star": {
+    "greeting": "Morning Star. Say how do I look whenever youre ready.",
+    "prefs": { "style": "clean casual", "flag_colors": true }
+  }
+}

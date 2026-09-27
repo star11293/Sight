@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+__pycache__/
+*.pyc
+frontend/public/models/*.bin
+frontend/public/models/*.json
+!frontend/public/models/.gitkeep
