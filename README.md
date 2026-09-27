@@ -1,87 +1,69 @@
 # Sight
 
-"A mirror that sees for you." Accessibility-first smart mirror — clock/weather
-dashboard, voice-activated outfit check via Gemini 2.5 Flash, in-browser face
-recognition, integrated Alexa Skill.
+**A smart mirror that describes your appearance and surroundings out loud, giving blind and low-vision users an independent way to see themselves.**
 
-Stack: React (Vite) frontend, Flask backend, face-api.js, Gemini 2.5 Flash.
+Built at hackUMBC 2026.
 
-## Layout
+For someone who is blind or has low vision, a simple daily question — *"How do I look?"* — often means depending on another person. Sight answers it out loud. Stand in front of the mirror, ask by voice, and it describes your outfit, reads text, identifies objects, and names colors — using a live camera and Google Gemini's vision AI.
 
-```
-frontend/   React app that renders on the Dell (fullscreen Chrome)
-backend/    Flask — Gemini outfit check, weather proxy, profiles, Alexa bridge
-```
+## Features
 
-## Run it
+Speak any of these (start with "mirror," or use the Alexa skill for the outfit check):
 
-Backend:
+- **"How do I look?"** — describes your outfit: items, colors, whether they coordinate, and anything off (stain, mismatch, inside-out)
+- **"Read this"** — reads text aloud from anything you hold up (labels, letters, medicine bottles)
+- **"What is this?"** — identifies objects
+- **"What color is this?"** — names colors specifically (for matching clothes)
+- **"Describe what you see"** — describes the scene
+- **"Do these go together?"** — styling judgment on two items
+- Ambient dashboard: clock, date, personalized greeting, and live weather, shown as bright text that appears to float on the mirror glass
 
+Everything meaningful is **spoken**, so the mirror works whether or not you can see the screen.
+
+## How it works
+
+- **Frontend:** React (Vite), rendered fullscreen behind two-way mirror film. A true-black background keeps the glass reflective while bright widgets show through.
+- **Backend:** Python / Flask, serving the vision and voice endpoints.
+- **Vision:** Google Gemini 2.5 Flash analyzes a live camera frame and generates a spoken description.
+- **Voice in:** the browser Web Speech API for local commands, plus a custom Amazon Alexa Skill.
+- **Face recognition:** face-api.js (TensorFlow.js), in-browser, for personalized greetings.
+
+### The interesting problem
+Alexa runs in the cloud, but the camera lives in the browser — and Alexa expects a response in under 8 seconds. Sight solves this by having the browser continuously push its latest camera frame to the backend, so when Alexa asks, a fresh frame is already waiting to be analyzed and spoken back.
+
+## Tech stack
+React · Vite · Python · Flask · Google Gemini 2.5 Flash · face-api.js · TensorFlow.js · Web Speech API · Amazon Alexa Skills Kit · ngrok
+
+## Hardware
+- Monitor with two-way mirror film
+- USB webcam (Logitech C270)
+- A computer to drive the display
+- Amazon Echo Dot (optional, for the Alexa voice)
+
+## Running it locally
+
+**Backend:**
 ```bash
 cd backend
-python -m venv venv && source venv/bin/activate
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env        # then fill in GEMINI_API_KEY + OPENWEATHER_API_KEY
-python app.py               # serves on :5001
+cp .env.example .env   # add your GEMINI_API_KEY and OPENWEATHER_API_KEY
+python app.py
 ```
 
-Frontend (new terminal):
-
+**Frontend:**
 ```bash
 cd frontend
 npm install
-npm run dev                 # http://localhost:5173
+npm run dev
 ```
 
-Open `http://localhost:5173` in Chrome, then fullscreen it on the Dell
-(View > Enter Full Screen, or Cmd+Ctrl+F). The center stays reflective; widgets
-sit in the corners.
+Open `http://localhost:5173` in Chrome, allow camera and mic, and fullscreen it on the mirror display.
 
-## Face recognition models (one-time)
+Face-recognition models go in `frontend/public/models/` (download the tiny_face_detector, face_landmark_68, and face_recognition weights from the face-api.js repo).
 
-face-api.js needs its weight files in `frontend/public/models/`. Grab them from
-the face-api.js repo:
+## Note on AI
+AI assistants were used during development for debugging and scaffolding, alongside the Google Gemini API that powers the product itself.
 
-```bash
-cd frontend/public/models
-BASE=https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights
-for f in tiny_face_detector_model-weights_manifest.json \
-         tiny_face_detector_model-shard1 \
-         face_landmark_68_model-weights_manifest.json \
-         face_landmark_68_model-shard1 \
-         face_recognition_model-weights_manifest.json \
-         face_recognition_model-shard1 \
-         face_recognition_model-shard2; do
-  curl -sO "$BASE/$f"
-done
-```
-
-## Registering a face
-
-`frontend/public/faces.json` holds registered profiles:
-
-```json
-[{ "label": "Star", "descriptors": [[...128 floats...]] }]
-```
-
-You generate the 128-float descriptor once per person with an enroll step
-(compute `faceapi.detectSingleFace(...).withFaceLandmarks().withFaceDescriptor()`
-on a few photos and save `.descriptor`). Greeting/prefs for each label live in
-`backend/profiles.json`.
-
-## Voice
-
-Two paths:
-- **Local (demo-ready now):** browser Web Speech API hears "how do I look" /
-  "check my outfit" / "what time is it" directly. No Alexa needed.
-- **Integrated Alexa:** Echo Dot -> custom Skill -> Lambda -> ngrok -> Flask
-  `/api/alexa`. Bridge is sketched in `app.py` (pending-flag pattern, since the
-  webcam lives in the browser not the backend).
-
-## Notes
-
-- True black background is load-bearing — any grey reads semi-reflective through
-  the two-way film. Keep widget text bright and weights >= medium so thin
-  strokes dont vanish.
-- Everything meaningful is spoken. The on-screen text mirrors the voice for
-  sighted users; the voice is the primary interface.
+## License
+MIT
