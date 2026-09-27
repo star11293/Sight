@@ -1,4 +1,4 @@
-# Smart Mirror
+# Sight
 
 "A mirror that sees for you." Accessibility-first smart mirror — clock/weather
 dashboard, voice-activated outfit check via Gemini 2.5 Flash, in-browser face
